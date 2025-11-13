@@ -4,48 +4,90 @@ function App() {
 
   const API_KEY = "d7f3dd593b43da63df84a92e279742f5";
   
-  const [city, setCity] = useState("London")
+  const [city, setCity] = useState("London");
+  const [search, setSearch] = useState("");
 
   const [data, setData] = useState(null);
   const [forecast, setForecast] = useState([]);
 
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false)
+
+  const fetchWeatherData = async (cityName) => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      // Weather data
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${API_KEY}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      setData(data)
+
+      // Forecast data
+      const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=${API_KEY}`;
+      const forecastResponse = await fetch(forecastUrl);
+      const forecastData = await forecastResponse.json();
+
+      /* Group by day
+      const dailyForecast = Object.groupBy(forecastData.list, day =>
+        new Date(day.dt * 1000).toLocaleDateString('en-US', { weekday: 'short' })
+      );
+      */
+
+      const dailyForecast  = forecastData.list.filter(
+        (_, index) => index % 8 === 0
+        // Updates every 3 hours, get 1 per day: 3 hours × 8 = 24 hours
+      );
+      setForecast(dailyForecast)
+
+    } catch (error) {
+      setError("Couldn't fetch data at the moment. Please try again!")
+      console.log(error.message);
+
+    } finally {
+      setLoading(false)
+    }
+  };
+
   useEffect(() => {
-    const fetchWeatherData = async (cityName) => {
-      try {
-
-        // Weather data
-        const url = `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${API_KEY}`;
-        const response = await fetch(url);
-        const data = await response.json();
-        setData(data)
-
-        // Forecast data
-        const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=${API_KEY}`;
-        const forecastResponse = await fetch(forecastUrl);
-        const forecastData = await forecastResponse.json();
-
-        const dailyForecast  = forecastData.list.filter(
-          (_, index) => index % 8 === 0
-          // Updates every 3 hours, get 1 per day: 3 hours × 8 = 24 hours
-        );
-        setForecast(dailyForecast)
-
-      } catch (error) {
-        console.log(error.message);
-      }
-    };
-
     fetchWeatherData(city);
   }, [city]);
 
+  function handleSearch(event) {
+    event.preventDefault();
+    fetchWeatherData(search);
+  }
+
+  // During load
+  if (loading)
+    return (
+    <div className="wrapper">Loading...</div>
+    );
+  
+  // After load
   return (
     <div className="wrapper">
+
+      <form onSubmit={handleSearch} className="search-form">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Enter city name"
+          className="search-input"
+        />
+        <button type="submit" className="search-button">Search</button>
+      </form>
+
+      {/* When error */}
+      {error && <p className="error">{error}</p>}
 
       {data && data.main && data.weather && (
         <>
           <div className="header">
             <p className="condition">{data.weather[0].description}</p>
-            <p className="temperature">{Math.round(((data.main.temp - 32) * 5/9) / 10)}°C</p>
+            <p className="temperature">{Math.round((data.main.temp - 273.15))}°C</p>
           </div>
 
           <div className="weather-details">
@@ -89,7 +131,9 @@ function App() {
                           src={`http://openweathermap.org/img/wn/${day.weather[0].icon}.png`}
                           alt={day.weather[0].description}
                         />
-                        <p>{Math.round(((day.main.temp - 32) * 5/9) / 10)}</p>
+                        <p>{Math.round((data.main.temp - 273.15))}°C</p>
+                        <p>/</p>
+                        <p>{Math.round((data.main.temp - 273.15))}°C</p>
                       </div>
                     </div>
                   ))}
