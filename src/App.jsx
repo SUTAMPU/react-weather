@@ -1,4 +1,5 @@
-import {useState, useEffect} from "react";
+import { useState, useEffect } from "react";
+import { Icons } from "./Components/Icons";
 
 function App() {
 
@@ -29,7 +30,7 @@ function App() {
       const forecastResponse = await fetch(forecastUrl);
       const forecastData = await forecastResponse.json();
 
-      /* Group by day
+      /* ======== Group by day to find min/max throughout the week
       const dailyForecast = Object.groupBy(forecastData.list, day =>
         new Date(day.dt * 1000).toLocaleDateString('en-US', { weekday: 'short' })
       );
@@ -57,6 +58,7 @@ function App() {
   function handleSearch(event) {
     event.preventDefault();
     fetchWeatherData(search);
+    setSearch("");
   }
 
   // During load
@@ -80,7 +82,7 @@ function App() {
         />
       </form>
 
-      {/* When error */}
+      {/* ======== When error */} 
       {error && <p className="error">{error}</p>}
 
       {/* When no error */}
@@ -96,11 +98,11 @@ function App() {
             <div className="weather-details">
               <h2 className="condition">{data.weather[0].description}</h2>
               <p className="min-max-temp">▲ {Math.round((data.main.temp_max - 273.15))}°</p>
-              <p className="min-max-temp">▼ {Math.round((data.main.temp_max - 273.15))}°</p>
+              <p className="min-max-temp">▼ {Math.round((data.main.temp_min - 273.15))}°</p>
             </div>
           </div>
 
-          <img className="condition-img" alt={data.weather[0].description} src="src/assets/01d.svg" />
+          <img className="condition-img" alt={data.weather[0].description} src={`src/assets/${Icons[data.weather[0].icon] || "01d.svg"}`} />
 
           <div className="other-details">
             <div className="detail">
@@ -112,7 +114,7 @@ function App() {
               <p>Humidity</p>
             </div>
             <div className="detail">
-              <h3>{Math.round(data.visibility / 1000)}km</h3>
+              <h3>{Math.round(data.visibility / 1000) / 10}km</h3>
               <p>Visibility</p>
             </div>
           </div>
@@ -134,9 +136,10 @@ function App() {
                       <img
                         className="forecast-condition-img"
                         alt={day.weather[0].description}
-                        src={"src/assets/01d.svg"}
+                        src={`src/assets/${Icons[day.weather[0].icon] || "01d.svg"}`}
                       />
 
+                      {/* ======== Adjust value */} 
                       <div className="forecast-details">
                         <p>{Math.round((day.main.temp_min - 273.15))}°C</p>
                         <p>|</p>
