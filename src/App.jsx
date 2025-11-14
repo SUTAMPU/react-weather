@@ -70,74 +70,80 @@ function App() {
     <div className="wrapper">
 
       <form onSubmit={handleSearch} className="search-form">
+        <button type="submit" className="search-button"><img alt="search-btn" src="src/assets/search-icon.svg" /></button>
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Enter city name"
+          placeholder="Search for a city"
           className="search-input"
         />
-        <button type="submit" className="search-button">Search</button>
       </form>
 
       {/* When error */}
       {error && <p className="error">{error}</p>}
 
+      {/* When no error */}
       {data && data.main && data.weather && (
         <>
           <div className="header">
-            <p className="condition">{data.weather[0].description}</p>
-            <p className="temperature">{Math.round((data.main.temp - 273.15))}°C</p>
+            <h3 className="location">{data.name}, {data.sys.country}</h3>
+            <p className="update">Last Updated: {new Date(data.dt * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute:'2-digit' })}</p>
           </div>
 
-          <div className="weather-details">
-            <div>
-              <p>Humidity</p>
-              <p>{data.main.humidity}%</p>
+          <div className="weather-simple">
+            <h1 className="temperature">{Math.round((data.main.temp - 273.15))}°</h1>
+            <div className="weather-details">
+              <h2 className="condition">{data.weather[0].description}</h2>
+              <p className="min-max-temp">▲ {Math.round((data.main.temp_max - 273.15))}°</p>
+              <p className="min-max-temp">▼ {Math.round((data.main.temp_max - 273.15))}°</p>
             </div>
-            <div>
+          </div>
+
+          <img className="condition-img" alt={data.weather[0].description} src="src/assets/01d.svg" />
+
+          <div className="other-details">
+            <div className="detail">
+              <h3>{data.wind.speed}m/s</h3>
               <p>Wind Speed</p>
-              <p>{data.wind.speed} m/s</p>
+            </div>
+            <div className="detail">
+              <h3>{data.main.humidity}%</h3>
+              <p>Humidity</p>
+            </div>
+            <div className="detail">
+              <h3>{Math.round(data.visibility / 1000)}km</h3>
+              <p>Visibility</p>
             </div>
           </div>
 
-          <div>
-            <svg className="waves" viewBox="0 24 150 28" preserveAspectRatio="none" shapeRendering="auto">
-              <defs>
-                <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
-              </defs>
-              <g className="parallax">
-                <use href="#gentle-wave" x="48" y="0" fill="rgba(255,255,255,0.7" />
-                <use href="#gentle-wave" x="48" y="3" fill="rgba(255,255,255,0.5)" />
-                <use href="#gentle-wave" x="48" y="5" fill="rgba(255,255,255,0.3)" />
-                <use href="#gentle-wave" x="48" y="7" fill="#fff" />
-              </g>
-            </svg>
+          <div className="separator">
+            <img alt="separator-icon" src="src/assets/separator-icon.svg" />
           </div>
 
           {forecast.length > 0 && (
             <>
               <div className="forecast">
-                <h2 className="city">{data.name}</h2>
                 <div className="forecast-days">
-
                   {forecast.map((day, index) => (
                     <div key={index} className="forecast-day">
                       <p>
-                        {new Date(day.dt * 1000).toLocaleDateString('en-US', { weekday: 'short' })}
+                        {new Date(day.dt * 1000).toLocaleDateString('en-US', { weekday: 'long' })}
                       </p>
+
+                      <img
+                        className="forecast-condition-img"
+                        alt={day.weather[0].description}
+                        src={"src/assets/01d.svg"}
+                      />
+
                       <div className="forecast-details">
-                        <img
-                          src={`http://openweathermap.org/img/wn/${day.weather[0].icon}.png`}
-                          alt={day.weather[0].description}
-                        />
-                        <p>{Math.round((data.main.temp - 273.15))}°C</p>
-                        <p>/</p>
-                        <p>{Math.round((data.main.temp - 273.15))}°C</p>
+                        <p>{Math.round((day.main.temp_min - 273.15))}°C</p>
+                        <p>|</p>
+                        <p>{Math.round((day.main.temp_max - 273.15))}°C</p>
                       </div>
                     </div>
                   ))}
-
                 </div>
               </div>
             </>
